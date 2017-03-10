@@ -16,7 +16,7 @@ public:
 	AMyProjectile();
 
 protected:
-	// Called when the game starts or when spawned
+	// Called when the game starts or when spawne
 	virtual void BeginPlay() override;
 	virtual void PostInitializeComponents() override;
 public:	

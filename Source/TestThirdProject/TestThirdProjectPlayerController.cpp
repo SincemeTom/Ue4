@@ -1,11 +1,10 @@
 // Copyright 1998-2017 Epic Games, Inc. All Rights Reserved.
-
+#include "TestThirdProject.h"
 #include "TestThirdProjectPlayerController.h"
 #include "AI/Navigation/NavigationSystem.h"
 #include "Runtime/Engine/Classes/Components/DecalComponent.h"
 #include "Kismet/HeadMountedDisplayFunctionLibrary.h"
 #include "Navigation/CrowdFollowingComponent.h"
-#include "TestThirdProject.h"
 #include "TestThirdProjectCharacter.h"
 
 

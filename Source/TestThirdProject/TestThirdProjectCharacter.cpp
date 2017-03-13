@@ -43,16 +43,17 @@ ATestThirdProjectCharacter::ATestThirdProjectCharacter()
 	// Create a decal in the world to show the cursor's location
 	CursorToWorld = CreateDefaultSubobject<UDecalComponent>("CursorToWorld");
 	CursorToWorld->SetupAttachment(RootComponent);
-	static ConstructorHelpers::FObjectFinder<UMaterial> DecalMaterialAsset(TEXT("Material'/Game/TopDownCPP/Blueprints/M_Cursor_Decal.M_Cursor_Decal'"));
-	if (DecalMaterialAsset.Succeeded())
-	{	
-		CursorDynamicMaterial =  UMaterialInstanceDynamic::Create(DecalMaterialAsset.Object, NULL);
-		if (CursorDynamicMaterial)
+
+	if (!CursorMaterial)
+	{
+		static ConstructorHelpers::FObjectFinder<UMaterial> DecalMaterialAsset(TEXT("Material'/Game/TopDownCPP/Blueprints/M_Cursor_Decal.M_Cursor_Decal'"));
+		if (DecalMaterialAsset.Succeeded())
 		{
-			CursorToWorld->SetDecalMaterial(CursorDynamicMaterial);
+			CursorMaterial = DecalMaterialAsset.Object;
 		}
-		
 	}
+	
+	
 	CursorToWorld->DecalSize = FVector(16.0f, 32.0f, 32.0f);
 	CursorToWorld->SetRelativeRotation(FRotator(90.0f, 0.0f, 0.0f).Quaternion());
 //	CursorToWorld->SetHiddenInGame(true);
@@ -63,7 +64,18 @@ ATestThirdProjectCharacter::ATestThirdProjectCharacter()
 	FireRate = 0.5f;
 	CursorInterSpeed = 10.f;
 }
-
+void ATestThirdProjectCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+	if (CursorMaterial)
+	{
+		CursorDynamicMaterial = UMaterialInstanceDynamic::Create(CursorMaterial, NULL);
+		if (CursorDynamicMaterial)
+		{
+			CursorToWorld->SetDecalMaterial(CursorDynamicMaterial);
+		}
+	}	
+}
 void ATestThirdProjectCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -120,16 +132,19 @@ void ATestThirdProjectCharacter::PossessedBy(AController* NewController)
 void  ATestThirdProjectCharacter::PostPossessdBy_Implementation(AController* NewController)
 {
 
+	
+}
+void ATestThirdProjectCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
 	if (IsLocallyControlled())
 	{
-		CursorDynamicMaterial->SetVectorParameterValue(TEXT("Color"), FLinearColor::Green);
+		CursorDynamicMaterial->SetVectorParameterValue(TEXT("Color"), FLinearColor(0.f, 1.f, 1.f, 1.f));
 	}
 	else
 	{
-		CursorDynamicMaterial->SetVectorParameterValue(TEXT("Color"), FLinearColor::Red);		
+		CursorDynamicMaterial->SetVectorParameterValue(TEXT("Color"), FLinearColor(1.f, 1.f, 0.f, 1.f));
 	}
-	
-	
 }
 
 void ATestThirdProjectCharacter::InitPathComponent()

@@ -17,9 +17,13 @@ public:
 
 	virtual void PossessedBy(AController* NewController) override;
 
+	virtual void OnRep_PlayerState() override;
+
+	virtual void PostInitializeComponents() override;
+
 	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const override;
 	void InitPathComponent();
-	UFUNCTION(NetMulticast, Reliable)
+	UFUNCTION(Client, Reliable)
 	virtual void PostPossessdBy(AController* NewController);
 
 	virtual void  PostPossessdBy_Implementation(AController* NewController);
@@ -50,10 +54,13 @@ private:
 	class UDecalComponent* CursorToWorld;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UMaterialInterface* CursorMaterial;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	float CursorInterSpeed;
 
 	UPROPERTY(replicatedUsing = OnRep_CursorTransform)
-		FTransform CursorTransform;
+	FTransform CursorTransform;
 
 protected:
 	/** True if the controlled character should navigate to the mouse cursor. */

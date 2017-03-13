@@ -1,4 +1,5 @@
 // Copyright 1998-2017 Epic Games, Inc. All Rights Reserved.
+
 #include "TestThirdProject.h"
 #include "TestThirdProjectCharacter.h"
 #include "Runtime/CoreUObject/Public/UObject/ConstructorHelpers.h"
@@ -207,7 +208,7 @@ void ATestThirdProjectCharacter::Tick(float DeltaSeconds)
 	}
 	else if (Role  == ROLE_AutonomousProxy)
 	{	
-		ServerSetCursorTransform(CursorToWorld->GetRelativeTransform());
+		ServerSetCursorTransform(CursorToWorld->GetComponentTransform());
 	}
 	else if (Role == ROLE_SimulatedProxy)
 	{
@@ -217,9 +218,9 @@ void ATestThirdProjectCharacter::Tick(float DeltaSeconds)
 
 void ATestThirdProjectCharacter::UpdateCursorTransform()
 {
-	FVector Loc = FMath::VInterpTo(CursorToWorld->RelativeLocation, CursorTransform.GetLocation(), GetWorld()->GetDeltaSeconds(), CursorInterSpeed);
-	FRotator Rot = FMath::RInterpTo(CursorToWorld->RelativeRotation, CursorTransform.GetRotation().Rotator(), GetWorld()->GetDeltaSeconds(), CursorInterSpeed);
-	CursorToWorld->SetRelativeTransform(FTransform(Rot, Loc));
+	FVector Loc = FMath::VInterpTo(CursorToWorld->GetComponentLocation(), CursorTransform.GetLocation(), GetWorld()->GetDeltaSeconds(), CursorInterSpeed);
+	FRotator Rot = FMath::RInterpTo(CursorToWorld->GetComponentRotation(), CursorTransform.GetRotation().Rotator(), GetWorld()->GetDeltaSeconds(), CursorInterSpeed);
+	CursorToWorld->SetWorldTransform(FTransform(Rot, Loc));
 }
 
 bool ATestThirdProjectCharacter::ServerSetCursorTransform_Validate(FTransform InTransform)

@@ -35,7 +35,21 @@ void ATestThirdProjectPlayerController::OnResetVR()
 }
 void ATestThirdProjectPlayerController::InitNavigationControl(UPathFollowingComponent*& PathFollowingComp)
 {
-	PathFollowingComp = PathFollowingComponent;
+
+	if (PathFollowingComponent)
+	{
+		PathFollowingComp = PathFollowingComponent;
+	}
+	else
+	{
+		PathFollowingComp = FindComponentByClass<UPathFollowingComponent>();
+		if (PathFollowingComp == NULL)
+		{
+			PathFollowingComp = NewObject<UPathFollowingComponent>(this);
+			PathFollowingComp->RegisterComponentWithWorld(GetWorld());
+			PathFollowingComp->Initialize();
+		}
+	}
 }
 void ATestThirdProjectPlayerController::SetPathFollowingComp(UPathFollowingComponent* InPathFollowingComp) 
 { 

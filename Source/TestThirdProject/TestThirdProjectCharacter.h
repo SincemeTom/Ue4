@@ -109,6 +109,11 @@ public:
 	void ShotTimerExpired();
 
 	void SwitchView();
+
+	UFUNCTION(BlueprintCallable, Category = SaveGame)
+		void SaveGame(AActor* InActor, const FString& String);
+	UFUNCTION(BlueprintCallable, Category = SaveGame)
+		bool LoadGame(const FString& SlotName, AActor*& OutActor, FString& String);
 private:
 	uint8 bCanFire : 1;
 	FTimerHandle TimerHandle_ShotTimerExpired;

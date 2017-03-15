@@ -8,6 +8,7 @@
 #include "Navigation/CrowdFollowingComponent.h"
 #include "UnrealNetwork.h"
 #include "MyProjectile.h"
+#include "MySaveGame.h"
 #include  "TestThirdProjectPlayerController.h"
 
 
@@ -100,7 +101,44 @@ void ATestThirdProjectCharacter::SetupPlayerInputComponent(UInputComponent* Play
 
 	}
 }
+void ATestThirdProjectCharacter::SaveGame(AActor* InActor, const FString& String)
+{
+	UMySaveGame* SaveGame = Cast<UMySaveGame>(UGameplayStatics::CreateSaveGameObject(UMySaveGame::StaticClass()));
+	if (SaveGame)
+	{
+		SaveGame->SaveActor = InActor;
+		SaveGame->Name = String;
+		UGameplayStatics::SaveGameToSlot(SaveGame, String, 0);
+	}
+}
+bool ATestThirdProjectCharacter::LoadGame(const FString& SlotName, AActor*& OutActor, FString& String)
+{
+	UMySaveGame* LoadGame = Cast<UMySaveGame>(UGameplayStatics::LoadGameFromSlot(SlotName, 0));
+	if (LoadGame)
+	{
+		OutActor = LoadGame->SaveActor;
+		String = LoadGame->Name;
+		if (OutActor)
+		{
+			GetWorld()->GetCurrentLevel()->Actors.Add(OutActor);
+			GetWorld()->ModifyLevel(GetWorld()->GetCurrentLevel());
+			GetWorld()->AddNetworkActor(OutActor); 
+			OutActor->SpawnCollisionHandlingMethod = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
+			OutActor->PostSpawnInitialize(OutActor->GetTransform(), OutActor->GetOwner(), OutActor->Instigator, false, true, true);
+
+			if (OutActor->IsPendingKill())
+			{
+				UE_LOG(LogTemp, Log, TEXT("SpawnActor failed because the spawned actor %s IsPendingKill"), *OutActor->GetPathName());
+				return false;
+			}
+
+			OutActor->CheckDefaultSubobjects();
+			return true;
+		}
+	}
+	return false;
+}
 void ATestThirdProjectCharacter::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -127,6 +165,7 @@ void ATestThirdProjectCharacter::SwitchView()
 void ATestThirdProjectCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
+	OnRep_PlayerState();
 	PostPossessdBy(NewController);
 }
 void  ATestThirdProjectCharacter::PostPossessdBy_Implementation(AController* NewController)
@@ -149,6 +188,7 @@ void ATestThirdProjectCharacter::OnRep_PlayerState()
 
 void ATestThirdProjectCharacter::InitPathComponent()
 {
+
 	UCrowdFollowingComponent* pCrowdComponent = NewObject<UCrowdFollowingComponent>(this);
 	pCrowdComponent->RegisterComponentWithWorld(GetWorld());
 	pCrowdComponent->Initialize();
@@ -157,6 +197,7 @@ void ATestThirdProjectCharacter::InitPathComponent()
 	{
 		pController->SetPathFollowingComp(pCrowdComponent);
 	}
+
 }
 
 
@@ -221,18 +262,15 @@ void ATestThirdProjectCharacter::Tick(float DeltaSeconds)
 	{
 		FireShot(GetActorForwardVector());
 	}
-	else if (Role  == ROLE_AutonomousProxy)
-	{	
-		ServerSetCursorTransform(CursorToWorld->GetComponentTransform());
-	}
-	else if (Role == ROLE_SimulatedProxy)
-	{
-		UpdateCursorTransform();
-	}
+	UpdateCursorTransform();
 }
 
 void ATestThirdProjectCharacter::UpdateCursorTransform()
 {
+	if (IsLocallyControlled())
+	{
+		ServerSetCursorTransform(CursorToWorld->GetComponentTransform());
+	}
 	FVector Loc = FMath::VInterpTo(CursorToWorld->GetComponentLocation(), CursorTransform.GetLocation(), GetWorld()->GetDeltaSeconds(), CursorInterSpeed);
 	FRotator Rot = FMath::RInterpTo(CursorToWorld->GetComponentRotation(), CursorTransform.GetRotation().Rotator(), GetWorld()->GetDeltaSeconds(), CursorInterSpeed);
 	CursorToWorld->SetWorldTransform(FTransform(Rot, Loc));

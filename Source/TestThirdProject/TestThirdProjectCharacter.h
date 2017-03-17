@@ -114,6 +114,8 @@ public:
 		void SaveGame(AActor* InActor, const FString& String);
 	UFUNCTION(BlueprintCallable, Category = SaveGame)
 		bool LoadGame(const FString& SlotName, AActor*& OutActor, FString& String);
+	UFUNCTION(BlueprintImplementableEvent)
+		bool SetFString(UPARAM(Ref) FString& Name);
 private:
 	uint8 bCanFire : 1;
 	FTimerHandle TimerHandle_ShotTimerExpired;

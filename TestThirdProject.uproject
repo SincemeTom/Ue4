@@ -9,8 +9,16 @@
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
-				"Engine"
+				"Engine",
+				"Blutility"
 			]
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "Linter",
+			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/5817c0a8a435471484f23e223ad5c9f5"
 		}
 	]
 }

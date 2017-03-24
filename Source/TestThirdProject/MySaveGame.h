@@ -13,9 +13,9 @@ class TESTTHIRDPROJECT_API UMySaveGame : public USaveGame
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Save)
 	AActor* SaveActor;
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Save)
 	FString Name;
 	
 };

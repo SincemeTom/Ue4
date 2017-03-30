@@ -1,0 +1,23 @@
+{
+	"FileVersion" : 3,
+	"Version" : 1,
+	"VersionName" : "1.0",
+	"Description" : "",
+	"Category" : "Other",
+	"CreatedBy" : "Michael",
+	"CreatedByURL" : "https://www.7663.com",
+	"DocsURL" : "https://www.7663.com",
+	"SupportURL" : "https://www.7663.com",
+	"CanContainContent" : false,
+	"IsBetaVersion" : false,
+	"Installed" : true,
+	"RequiresBuildPlatform" : false,
+	"Modules" :
+	[
+		{
+			"Name" : "SlateExtension",
+			"Type" : "Editor",
+			"LoadingPhase" : "Default"
+		}
+	]
+}

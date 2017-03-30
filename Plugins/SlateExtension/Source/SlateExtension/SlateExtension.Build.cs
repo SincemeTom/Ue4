@@ -10,7 +10,7 @@ public class SlateExtension : ModuleRules
 
         PublicIncludePaths.AddRange(
 			new string[] {
-				//"Linter/Public"
+                "SlateExtension/Public"
 				// ... add public include paths required here ...
 			}
 			);
@@ -18,7 +18,7 @@ public class SlateExtension : ModuleRules
 		
 		PrivateIncludePaths.AddRange(
 			new string[] {
-				//"Linter/Private",
+                "SlateExtension/Private",
 				// ... add other private include paths required here ...
 			}
 			);
@@ -27,7 +27,7 @@ public class SlateExtension : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				//"Core",
+				"Core"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);

@@ -3,7 +3,7 @@
 #pragma once
 
 // Integrate Linter actions into the Content Browser context menu
-class FLinterContentBrowserExtensions
+class FSlateExtensionContentBrowserExtensions
 {
 public:
 	static void InstallHooks();

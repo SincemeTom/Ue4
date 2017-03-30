@@ -3,95 +3,25 @@
 
 
 
+#include "SlateExtension.h"
+//#include "ContentBrowserExtensions.h"
 
-#include "ContentBrowserExtensions.h"
 
+#define LOCTEXT_NAMESPACE "FSlateExtensionModule"
 
-#define LOCTEXT_NAMESPACE "FLinterModule"
-
-void FLinterModule::StartupModule()
+void FSlateExtensionModule::StartupModule()
 {
-	LinterManager = nullptr;
 
-	// Integrate Linter actions into existing editor context menus
-	if (!IsRunningCommandlet())
-	{
-		// Register slate style overrides
-		FLinterStyle::Initialize();
-		FLinterContentBrowserExtensions::InstallHooks();
-		LinterCommandletManager = new FLinterCommandletManager();
-	}
-	else
-	{
-		LinterManager = new FLinterManager();
-	}
 
-	RegisterSettings();
 }
 
-void FLinterModule::ShutdownModule()
+void FSlateExtensionModule::ShutdownModule()
 {
-	if (LinterManager != nullptr)
-	{
-		delete LinterManager;
-		LinterManager = nullptr;
-	}
 
-	if (UObjectInitialized())
-	{
-		FLinterContentBrowserExtensions::RemoveHooks();
-
-		// Unregister slate style overrides
-		FLinterStyle::Shutdown();
-	}
-
-	UnregisterSettings();
-}
-void FLinterModule::RegisterSettings()
-{
-	if (ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings"))
-	{
-		SettingsModule->RegisterSettings("Project", "Plugins", "Plugins",
-			LOCTEXT("RuntimeSettingsName", "Linter"),
-			LOCTEXT("RuntimeSettingsDescription", "Configure the Linter plugin"),
-			GetMutableDefault<ULinterSettings>());
-	}
 }
 
-void FLinterModule::UnregisterSettings()
-{
-	if (ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings"))
-	{
-		SettingsModule->UnregisterSettings("Project", "Plugins", "Plugins");
-	}
-}
-
-FLinterManager* FLinterModule::GetLinterManager()
-{
-	if (ensure(IsRunningCommandlet() && LinterManager != nullptr))
-	{
-		return LinterManager;
-	}
-	else
-	{
-		return nullptr;
-	}
-	
-}
-
-FLinterCommandletManager* FLinterModule::GetLinterCommandletManager()
-{
-	if (ensure(!IsRunningCommandlet() && LinterCommandletManager != nullptr))
-	{
-		return LinterCommandletManager;
-	}
-	else
-	{
-		return nullptr;
-	}
-}
 
 #undef LOCTEXT_NAMESPACE
 	
-IMPLEMENT_MODULE(FLinterModule, Linter)
-DEFINE_LOG_CATEGORY(LogLinter);
+IMPLEMENT_MODULE(FSlateExtensionModule, SlateExtension)
+DEFINE_LOG_CATEGORY(LogSlateExtension);

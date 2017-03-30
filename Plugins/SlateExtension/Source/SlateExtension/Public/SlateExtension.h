@@ -2,22 +2,16 @@
 
 #pragma once
 
-#include "ModuleManager.h"
+#include "Modules/ModuleManager.h"
 
-DECLARE_LOG_CATEGORY_EXTERN(LogLinter, Verbose, All);
+DECLARE_LOG_CATEGORY_EXTERN(LogSlateExtension, Verbose, All);
 
-class FLinterModule : public IModuleInterface
+class FSlateExtensionModule : public IModuleInterface
 {
 public:
 
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
-	void RegisterSettings();
-	void UnregisterSettings();
 
-
-private:
-	//FLinterManager* LinterManager;
-	//FLinterCommandletManager* LinterCommandletManager;
 };

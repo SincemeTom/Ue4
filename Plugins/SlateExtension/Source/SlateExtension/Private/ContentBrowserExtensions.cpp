@@ -85,6 +85,11 @@ static void CheckSelectedAssets(const TArray<FAssetData>& SelectedAssets)
 				{
 					ErrorList.Add(ErrorMessage);
 				}
+				
+			}
+			else
+			{
+				UE_LOG(LogSlateExtension, Error, TEXT("Faild to load '%s'."), *Asset.ObjectPath.ToString())
 			}
 		}
 
@@ -191,33 +196,40 @@ public:
 			FSlateIcon()
 			);
 			*/
+		MenuBuilder.BeginSection("Blueprint Checker", LOCTEXT("Blueprint Checker", "Blueprint Checker"));
+		MenuBuilder.AddSubMenu(
+			LOCTEXT("SlateExtensionAssetActionsSubMenuLabel", "Slate Extension Actions"),
+			LOCTEXT("SlateExtensionAssetActionsSubMenuToolTip", "This is Slate Extension E.m.."),
+			FNewMenuDelegate::CreateStatic(&FSlateExtensionContentBrowserExtensions_Impl::PopulatePathSlateExtensionActionsMenu, SelectedPaths),
+			false,
+			FSlateIcon(FEditorStyle::GetStyleSetName(), "ContentBrowser.AssetActions")
+
+		);
+		MenuBuilder.EndSection();
 	}
 
 	static void PopulatePathSlateExtensionActionsMenu(FMenuBuilder& MenuBuilder, TArray<FString> SelectedPaths)
 	{
-		// Create sprites
-		/*
-		TSharedPtr<FRunLinterForPathExtension> RunLinterFunctor = MakeShareable(new FRunLinterForPathExtension());
-		RunLinterFunctor->SelectedPaths = SelectedPaths;
+	
+		TSharedPtr<FRunSlateExtensionForPathExtension> RunSlateExtensionFunctor = MakeShareable(new FRunSlateExtensionForPathExtension());
+		RunSlateExtensionFunctor->SelectedPaths = SelectedPaths;
 
-		FUIAction Action_RunLinter(
-			FExecuteAction::CreateStatic(&FLinterContentBrowserExtensions_Impl::ExecuteSelectedPathFunctor, StaticCastSharedPtr<FLinterContentBrowserSelectedPathsExtensionBase>(RunLinterFunctor)));
-
-	    const FName LinterStyleSetName = FLinterStyle::Get()->GetStyleSetName();
-
+		FUIAction Action_RunSlateExtension(
+			FExecuteAction::CreateStatic(&FSlateExtensionContentBrowserExtensions_Impl::ExecuteSelectedPathFunctor, StaticCastSharedPtr<FSlateExtensionContentBrowserSelectedPathsExtensionBase>(RunSlateExtensionFunctor))
+		);
+		MenuBuilder.BeginSection("SubMenuHook", LOCTEXT("SlateExtensionCheckSelectedBlueprint", "CheckSelectedBlueprints"));
 		MenuBuilder.AddMenuEntry(
 			LOCTEXT("CB_Extension_RunLinter", "Run Linter"),
 			LOCTEXT("CB_Extension_RunLinter_Tooltip", "Run Linter on selected paths."),
-			FSlateIcon(LinterStyleSetName, "AssetActions.RunLinter"),
-			Action_RunLinter,
+			FSlateIcon(FEditorStyle::GetStyleSetName(), "AssetActions.RunLinter"),
+			Action_RunSlateExtension,
 			NAME_None,
 			EUserInterfaceActionType::Button);
-			*/
+		MenuBuilder.EndSection();
 	}
 
 	static TSharedRef<FExtender> OnExtendContentBrowserPathSelectionMenu(const TArray<FString>& SelectedPaths)
-	{
-		
+	{		
 		TSharedRef<FExtender> Extender(new FExtender());
 		/*
 		// Run thru the paths to determine if any meet our criteria
@@ -227,16 +239,14 @@ public:
 			const FString& Asset = *PathIt;
 			bAnyContentPaths = bAnyContentPaths || Asset.StartsWith(TEXT("/Game"));
 		}
+		*/
 
-		if (bAnyContentPaths)
-		{
-			// Add the sprite actions sub-menu extender
 			Extender->AddMenuExtension(
 				"PathViewFolderOptions",
 				EExtensionHook::After,
 				nullptr,
-				FMenuExtensionDelegate::CreateStatic(&FLinterContentBrowserExtensions_Impl::CreateLinterPathActionsSubMenu, SelectedPaths));
-		}*/
+				FMenuExtensionDelegate::CreateStatic(&FSlateExtensionContentBrowserExtensions_Impl::CreateSlateExtensionPathActionsSubMenu, SelectedPaths)
+			);
 
 		return Extender;
 	}
@@ -257,7 +267,7 @@ public:
 
 	static void CreateSlateExtensionAssetActionsSubMenu(FMenuBuilder& MenuBuilder, TArray<FAssetData> SelectedAssets)
 	{
-		MenuBuilder.BeginSection("MyMenuHook", LOCTEXT("MyMenu", "MyMenu"));
+		MenuBuilder.BeginSection("Blueprint Checker", LOCTEXT("Blueprint Checker", "Blueprint Checker"));
 		MenuBuilder.AddSubMenu(
 			LOCTEXT("SlateExtensionAssetActionsSubMenuLabel", "Slate Extension Actions"),
 			LOCTEXT("SlateExtensionAssetActionsSubMenuToolTip", "This is Slate Extension E.m.."),
@@ -285,7 +295,7 @@ public:
 		);
 		MenuBuilder.BeginSection("SubMenuHook", LOCTEXT("SlateExtensionCheckSelectedBlueprint", "CheckSelectedBlueprints"));
 		MenuBuilder.AddMenuEntry(
-			LOCTEXT("SlateExtensionMenuEnry", "Menu Entry"),
+			LOCTEXT("SlateExtensionMenuEnry", "Check Blueprints"),
 			LOCTEXT("SlateExtensionMenuEnryTooltip", "This is Slate Extension Menu Entry"),
 			FSlateIcon(FEditorStyle::GetStyleSetName(), "ContentBrowser.AssetActions"),
 			Action_MenuEntry,
@@ -306,30 +316,6 @@ public:
 			nullptr,
 			FMenuExtensionDelegate::CreateStatic(&FSlateExtensionContentBrowserExtensions_Impl::CreateSlateExtensionAssetActionsSubMenu, SelectedAssets)
 		);
-			
-		// Run thru the assets to determine if any meet our criteria
-		/*bool bAnyAssetCanBeRenamed = false;
-		for (auto AssetIt = SelectedAssets.CreateConstIterator(); AssetIt; ++AssetIt)
-		{
-			const FAssetData& Asset = *AssetIt;
-			// Cannot rename redirectors or classes or cooked packages
-			if (!Asset.IsRedirector() && Asset.AssetClass != NAME_Class && !(Asset.PackageFlags & PKG_FilterEditorOnly))
-			{
-				bAnyAssetCanBeRenamed = true;
-				break;
-			}
-		}
-
-		if (bAnyAssetCanBeRenamed)
-		{
-			// Add the sprite actions sub-menu extender
-			Extender->AddMenuExtension(
-				"CommonAssetActions",
-				EExtensionHook::After,
-				nullptr,
-				FMenuExtensionDelegate::CreateStatic(&FLinterContentBrowserExtensions_Impl::CreateLinterAssetActionsSubMenu, SelectedAssets));
-		}
-		*/
 		return Extender;
 	}
 

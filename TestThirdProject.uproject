@@ -23,6 +23,10 @@
 		{
 			"Name": "GameSave",
 			"Enabled": true
+		},
+		{
+			"Name": "SlateExtension",
+			"Enabled": true
 		}
 	]
 }

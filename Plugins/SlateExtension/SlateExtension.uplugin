@@ -1,23 +1,24 @@
 {
-	"FileVersion" : 3,
-	"Version" : 1,
-	"VersionName" : "1.0",
-	"Description" : "",
-	"Category" : "Other",
-	"CreatedBy" : "Michael",
-	"CreatedByURL" : "https://www.7663.com",
-	"DocsURL" : "https://www.7663.com",
-	"SupportURL" : "https://www.7663.com",
-	"CanContainContent" : false,
-	"IsBetaVersion" : false,
-	"Installed" : true,
-	"RequiresBuildPlatform" : false,
-	"Modules" :
-	[
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "Slate Extension",
+	"Description": "",
+	"Category": "Other",
+	"CreatedBy": "Michael",
+	"CreatedByURL": "https://www.7663.com",
+	"DocsURL": "https://www.7663.com",
+	"MarketplaceURL": "",
+	"SupportURL": "https://www.7663.com",
+	"CanContainContent": false,
+	"IsBetaVersion": false,
+	"Installed": true,
+	"Modules": [
 		{
-			"Name" : "SlateExtension",
-			"Type" : "Editor",
-			"LoadingPhase" : "Default"
+			"Name": "SlateExtension",
+			"Type": "Editor",
+			"LoadingPhase": "Default"
 		}
-	]
+	],
+	"RequiresBuildPlatform": false
 }

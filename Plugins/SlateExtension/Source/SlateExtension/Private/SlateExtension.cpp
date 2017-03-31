@@ -4,20 +4,20 @@
 
 
 #include "SlateExtension.h"
-//#include "ContentBrowserExtensions.h"
+#include "ContentBrowserExtensions.h"
 
 
 #define LOCTEXT_NAMESPACE "FSlateExtensionModule"
 
 void FSlateExtensionModule::StartupModule()
 {
-
+	FSlateExtensionContentBrowserExtensions::InstallHooks();
 
 }
 
 void FSlateExtensionModule::ShutdownModule()
 {
-
+	FSlateExtensionContentBrowserExtensions::RemoveHooks();
 }
 
 

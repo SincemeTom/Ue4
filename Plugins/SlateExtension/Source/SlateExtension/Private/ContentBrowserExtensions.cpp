@@ -252,21 +252,11 @@ public:
 	static TSharedRef<FExtender> OnExtendContentBrowserPathSelectionMenu(const TArray<FString>& SelectedPaths)
 	{		
 		TSharedRef<FExtender> Extender(new FExtender());
-		/*
-		// Run thru the paths to determine if any meet our criteria
-		bool bAnyContentPaths = false;
-		for (auto PathIt = SelectedPaths.CreateConstIterator(); PathIt; ++PathIt)
-		{
-			const FString& Asset = *PathIt;
-			bAnyContentPaths = bAnyContentPaths || Asset.StartsWith(TEXT("/Game"));
-		}
-		*/
-
-			Extender->AddMenuExtension(
-				"PathViewFolderOptions",
-				EExtensionHook::After,
-				nullptr,
-				FMenuExtensionDelegate::CreateStatic(&FSlateExtensionContentBrowserExtensions_Impl::CreateSlateExtensionPathActionsSubMenu, SelectedPaths)
+		Extender->AddMenuExtension(
+			"PathViewFolderOptions",
+			EExtensionHook::After,
+			nullptr,
+			FMenuExtensionDelegate::CreateStatic(&FSlateExtensionContentBrowserExtensions_Impl::CreateSlateExtensionPathActionsSubMenu, SelectedPaths)
 			);
 
 		return Extender;

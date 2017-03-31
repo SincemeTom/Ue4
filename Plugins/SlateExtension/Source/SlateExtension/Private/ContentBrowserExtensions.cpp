@@ -6,6 +6,7 @@
 #include "AssetRegistryModule.h"
 #include "IAssetTools.h"
 #include "EditorStyle.h"
+#include "EngineUtils.h"
 #include "Engine/Blueprint.h"
 #include "SlateExtension.h"
 #include "SlateExtensionEditorCommands.h"
@@ -69,32 +70,10 @@ static bool IsCompiledCorrectly(UBlueprint* Blueprint, TSharedPtr<FBlueprintErro
 		return true;
 	}
 }
-static void CheckSelectedAssets(const TArray<FAssetData>& SelectedAssets)
+static void PrintErrorListMessage(const TArray<TSharedPtr<FBlueprintErrorMessage>>& ErrorList)
 {
-	UE_LOG(LogSlateExtension, Log, TEXT("------------------------------------------Start Check Selected Assets-----------------------------------"))
-	TArray<TSharedPtr<FBlueprintErrorMessage>> ErrorList;
-		for (FAssetData Asset : SelectedAssets)
-		{
-			UObject* LoadedObject = Asset.GetAsset();
-			if (LoadedObject != nullptr)
-			{
-				UE_LOG(LogSlateExtension, Log, TEXT("Loaded '%s'..."), *Asset.ObjectPath.ToString())
-					UBlueprint*	Blueprint = CastChecked<UBlueprint>(LoadedObject);
-				TSharedPtr<FBlueprintErrorMessage> ErrorMessage;
-				if (!IsCompiledCorrectly(Blueprint, ErrorMessage))
-				{
-					ErrorList.Add(ErrorMessage);
-				}
-				
-			}
-			else
-			{
-				UE_LOG(LogSlateExtension, Error, TEXT("Faild to load '%s'."), *Asset.ObjectPath.ToString())
-			}
-		}
+	UE_LOG(LogSlateExtension, Log, TEXT("-------------------------------------------------ErrorList-----------------------------------"))
 
-	UE_LOG(LogSlateExtension, Log, TEXT("------------------------------------------End Check Selected Assets-----------------------------------"))
-		UE_LOG(LogSlateExtension, Log, TEXT("-------------------------------------------------ErrorList-----------------------------------"))
 		for (TSharedPtr<FBlueprintErrorMessage> message : ErrorList)
 		{
 			switch (message->ErrorType)
@@ -108,10 +87,68 @@ static void CheckSelectedAssets(const TArray<FAssetData>& SelectedAssets)
 			default:
 				break;
 			}
-			
+
 		}
 }
+static void CheckSelectedAssets(const TArray<FAssetData>& SelectedAssets)
+{
+	UE_LOG(LogSlateExtension, Log, TEXT("------------------------------------------Start Check Selected Assets-----------------------------------"))
+	TArray<TSharedPtr<FBlueprintErrorMessage>> ErrorList;
+	for (FAssetData Asset : SelectedAssets)
+	{
+		UObject* LoadedObject = Asset.GetAsset();
+		if (LoadedObject != nullptr)
+		{
+			UE_LOG(LogSlateExtension, Log, TEXT("Loaded '%s'"), *Asset.ObjectPath.ToString())
+				UBlueprint*	Blueprint = Cast<UBlueprint>(LoadedObject);
+			TSharedPtr<FBlueprintErrorMessage> ErrorMessage;
+			if (Blueprint && !IsCompiledCorrectly(Blueprint, ErrorMessage))
+			{
+				ErrorList.Add(ErrorMessage);
+			}
 
+		}
+		else
+		{
+			UE_LOG(LogSlateExtension, Error, TEXT("Faild to load '%s'"), *Asset.ObjectPath.ToString())
+		}
+	}
+
+	UE_LOG(LogSlateExtension, Log, TEXT("------------------------------------------End Check Selected Assets-----------------------------------"))
+
+	PrintErrorListMessage(ErrorList);
+}
+static void CheckSelectedPaths(const TArray<FString>& SelectedPaths)
+{
+	UE_LOG(LogSlateExtension, Log, TEXT("------------------------------------------Start Check Selected Assets-----------------------------------"))
+	
+	TArray<TSharedPtr<FBlueprintErrorMessage>> ErrorList;
+	for (const FString& Path : SelectedPaths)
+	{
+		TArray<UObject*> LoadedObjects;
+		if (EngineUtils::FindOrLoadAssetsByPath(Path, LoadedObjects, EngineUtils::ATL_Regular))
+		{
+			for (UObject* LoadedObject : LoadedObjects)
+			{
+				if (LoadedObject)
+				{
+					UE_LOG(LogSlateExtension, Log, TEXT("Loaded '%s'"), *LoadedObject->GetPathName())
+					UBlueprint* Blueprint = Cast<UBlueprint>(LoadedObject);
+					TSharedPtr<FBlueprintErrorMessage> ErrorMessage;
+					if (Blueprint && !IsCompiledCorrectly(Blueprint, ErrorMessage))
+					{
+						ErrorList.Add(ErrorMessage);
+					}
+				}
+			}
+			
+		}
+
+	}
+	UE_LOG(LogSlateExtension, Log, TEXT("------------------------------------------End Check Selected Assets-----------------------------------"))
+
+	PrintErrorListMessage(ErrorList);
+}
 
 //////////////////////////////////////////////////////////////////////////
 // FLinterContentBrowserSelectedPathsExtensionBase
@@ -135,15 +172,7 @@ struct FRunSlateExtensionForPathExtension : public FSlateExtensionContentBrowser
 	{
 		UE_LOG(SlateExtensionCBExtensions, Display, TEXT("Starting SlateExtension."));
 
-/*		FLinterCommandletManager* LinterCommandletManager = FModuleManager::LoadModuleChecked<FLinterModule>(TEXT("Linter")).GetLinterCommandletManager();
-		if (LinterCommandletManager && LinterCommandletManager->RunLinter(SelectedPaths))
-		{
-			UE_LOG(LinterCBExtensions, Display, TEXT("Linter started."));
-		}
-		else
-		{
-			UE_LOG(LinterCBExtensions, Error, TEXT("Failed to start Linter. Already Linting?"));
-		}*/
+		CheckSelectedPaths(SelectedPaths);
 	}
 };
 
@@ -188,14 +217,6 @@ public:
 
 	static void CreateSlateExtensionPathActionsSubMenu(FMenuBuilder& MenuBuilder, TArray<FString> SelectedPaths)
 	{
-/*		MenuBuilder.AddSubMenu(
-			LOCTEXT("LinterPathActionsSubMenuLabel", "Linter Actions"),
-			LOCTEXT("LinterPathActionsSubMenuToolTip", "Linter-related actions for this path."),
-			FNewMenuDelegate::CreateStatic(&FSlateExtensionContentBrowserExtensions_Impl::PopulatePathLinterActionsMenu, SelectedPaths),
-			false,
-			FSlateIcon()
-			);
-			*/
 		MenuBuilder.BeginSection("Blueprint Checker", LOCTEXT("Blueprint Checker", "Blueprint Checker"));
 		MenuBuilder.AddSubMenu(
 			LOCTEXT("SlateExtensionAssetActionsSubMenuLabel", "Slate Extension Actions"),
@@ -219,7 +240,7 @@ public:
 		);
 		MenuBuilder.BeginSection("SubMenuHook", LOCTEXT("SlateExtensionCheckSelectedBlueprint", "CheckSelectedBlueprints"));
 		MenuBuilder.AddMenuEntry(
-			LOCTEXT("CB_Extension_RunLinter", "Run Linter"),
+			LOCTEXT("CB_Extension_RunLinter", "Check Blueprints"),
 			LOCTEXT("CB_Extension_RunLinter_Tooltip", "Run Linter on selected paths."),
 			FSlateIcon(FEditorStyle::GetStyleSetName(), "AssetActions.RunLinter"),
 			Action_RunSlateExtension,

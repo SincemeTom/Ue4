@@ -9,6 +9,8 @@
 #include "EngineUtils.h"
 #include "Engine/Blueprint.h"
 #include "SlateExtension.h"
+#include "SlateSWindow.h"
+#include "SlateWindowHelper.h"
 #include "SlateExtensionEditorCommands.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
 
@@ -35,7 +37,11 @@ public:
 		:ErrorType(InErrorType),
 		ErrorMessage(InErrorMessage)
 	{
-
+	}
+	void operator=(FBlueprintErrorMessage Other)
+	{
+		ErrorType = Other.ErrorType;
+		ErrorMessage = Other.ErrorMessage;
 	}
 public:
 	EBlueprintStatus ErrorType;
@@ -89,6 +95,13 @@ static void PrintErrorListMessage(const TArray<TSharedPtr<FBlueprintErrorMessage
 			}
 
 		}
+	
+	FDlgShowErrorList AssetDlg;
+//	AssetDlg.ErrorMessages = ErrorList;
+	if (AssetDlg.ShowModal() == FDlgShowErrorList::Confirm)
+	{
+
+	}
 }
 static void CheckSelectedAssets(const TArray<FAssetData>& SelectedAssets)
 {
@@ -117,6 +130,7 @@ static void CheckSelectedAssets(const TArray<FAssetData>& SelectedAssets)
 	UE_LOG(LogSlateExtension, Log, TEXT("------------------------------------------End Check Selected Assets-----------------------------------"))
 
 	PrintErrorListMessage(ErrorList);
+
 }
 static void CheckSelectedPaths(const TArray<FString>& SelectedPaths)
 {
@@ -197,6 +211,7 @@ struct FMenuEntryAssetsExtension : public FSlateExtensionContentBrowserSelectedA
 	virtual void Execute() override
 	{
 		CheckSelectedAssets(SelectedAssets);
+
 	}
 };
 

@@ -96,9 +96,8 @@ static void PrintErrorListMessage(const TArray<TSharedPtr<FBlueprintErrorMessage
 
 		}
 	
-	FDlgShowErrorList AssetDlg;
-//	AssetDlg.ErrorMessages = ErrorList;
-	if (AssetDlg.ShowModal() == FDlgShowErrorList::Confirm)
+	TSharedPtr<FDlgShowErrorList> AssetDlg = MakeShareable(new FDlgShowErrorList(ErrorList));
+	if (AssetDlg->ShowModal() == FDlgShowErrorList::Confirm)
 	{
 
 	}

@@ -3,6 +3,7 @@
 #include "SlateSWindow.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Framework/Text/TextLayout.h"
+#include "ContentBrowserExtensions.h"
 #include "SBox.h"
 #include "STextBlock.h"
 #include "SButton.h"
@@ -10,6 +11,8 @@
 #include "Editor.h"
 
 #define LOCTEXT_NAMESPACE "LinterBatchRenamer"
+
+const FVector2D WindowSize = FVector2D(600, 800);
 
 FDlgShowErrorList::FDlgShowErrorList()
 	: bRemovePrefix(false)
@@ -22,7 +25,8 @@ FDlgShowErrorList::FDlgShowErrorList()
 			.SupportsMinimize(true).SupportsMaximize(true)
 			.SaneWindowPlacement(true)
 			.AutoCenter(EAutoCenter::PreferredWorkArea)
-			.ClientSize(FVector2D(350, 165));
+			.ClientSize(WindowSize);
+
 
 		TSharedPtr<SBorder> DialogWrapper =
 			SNew(SBorder)
@@ -36,20 +40,21 @@ FDlgShowErrorList::FDlgShowErrorList()
 		DialogWindow->SetContent(DialogWrapper.ToSharedRef());
 	}
 }
-/*
-FDlgShowErrorList::FDlgShowErrorList(const TArray<TSharedPtr<class SDlgSlateSWindow>>& InErrorMessages)
+
+FDlgShowErrorList::FDlgShowErrorList(const TArray<TSharedPtr<FBlueprintErrorMessage>>& InErrorMessages)
 	:ErrorMessages(InErrorMessages)
 	, bRemovePrefix(false)
 	, bRemoveSuffix(false) 
 {
+	TSharedPtr<FDlgShowErrorList> TempPtr = MakeShareable(this);
 	if (FSlateApplication::IsInitialized())
 	{
 		DialogWindow = SNew(SWindow)
 			.Title(LOCTEXT("BlueprintCheckerToolDlgTitle", "Blueprint Check Tool"))
 			.SupportsMinimize(true).SupportsMaximize(true)
-			.SaneWindowPlacement(true)
+			.SaneWindowPlacement(false)
 			.AutoCenter(EAutoCenter::PreferredWorkArea)
-			.ClientSize(FVector2D(350, 165));
+			.ClientSize(WindowSize);
 
 		TSharedPtr<SBorder> DialogWrapper =
 			SNew(SBorder)
@@ -58,12 +63,15 @@ FDlgShowErrorList::FDlgShowErrorList(const TArray<TSharedPtr<class SDlgSlateSWin
 			[
 				SAssignNew(DialogWidget, SDlgSlateSWindow)
 				.ParentWindow(DialogWindow)
+				.ErrorListDlg(TempPtr)
+				//.ErrorMessages(ErrorMessages)
 			];
 
 		DialogWindow->SetContent(DialogWrapper.ToSharedRef());
+	//	DialogWidget->SetErrorListDlg(MakeShareable(this));
 	}
 }
-*/
+
 FDlgShowErrorList::EResult FDlgShowErrorList::ShowModal()
 {
 	//Show Dialog
@@ -93,178 +101,61 @@ void SDlgSlateSWindow::Construct(const FArguments& InArgs)
 {
 	UserResponse = FDlgShowErrorList::Cancel;
 	ParentWindow = InArgs._ParentWindow.Get();
+	ErrorListDlg = InArgs._ErrorListDlg.Get();
 
-	/*this->ChildSlot[
+	this->ChildSlot[
 		SNew(SVerticalBox)
 			+ SVerticalBox::Slot()
 			.AutoHeight()
-			.Padding(8.0f, 4.0f, 8.0f, 4.0f)
+			.Padding(8.0f,4.0f,8.0f,4.0f)
 			[
-				SNew(SHorizontalBox)
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				.VAlign(VAlign_Center)
-				.HAlign(HAlign_Right)
-				.Padding(0.0f, 0.0f, 8.0f, 0.0f)
-				[
-					SNew(SBox)
-					.WidthOverride(48.0f)
-					[
-						SNew(STextBlock)
-						.Text(LOCTEXT("BatchRenameToolDlgPrefix", "Prefix"))
-					.Justification(ETextJustify::Right)
-					]
-				]
-			+ SHorizontalBox::Slot()
-				.FillWidth(1.0f)
-				.Padding(0.0f, 0.0f, 8.0f, 0.0f)
-				[
-					SAssignNew(PrefixTextBox, SEditableTextBox)
-				]
-			+ SHorizontalBox::Slot()
-				.AutoWidth()
-				.Padding(0.0f, 0.0f, 0.0f, 0.0f)
-				[
-					SAssignNew(PrefixRemoveBox, SCheckBox)
-				]
-			+ SHorizontalBox::Slot()
-				.AutoWidth()
-				.VAlign(VAlign_Center)
-				.Padding(0.0f, 0.0f, 8.0f, 0.0f)
-				[
-					SNew(STextBlock)
-					.Text(LOCTEXT("BatchRenameToolDlgRemove", "Remove"))
-				]
+				SAssignNew(ErrorListBox, SVerticalBox)
 			]
 			+ SVerticalBox::Slot()
 			.AutoHeight()
+			.HAlign(HAlign_Right)
 			.Padding(8.0f, 4.0f, 8.0f, 4.0f)
 			[
-				SNew(SHorizontalBox)
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				.VAlign(VAlign_Center)
-				.HAlign(HAlign_Right)
-				.Padding(0.0f, 0.0f, 8.0f, 0.0f)
+				SNew(SUniformGridPanel)
+				.SlotPadding(FEditorStyle::GetMargin("StandardDialog.SlotPadding"))
+				.MinDesiredSlotWidth(FEditorStyle::GetFloat("StandardDialog.MinDesiredSlotWidth"))
+				.MinDesiredSlotHeight(FEditorStyle::GetFloat("StandardDialog.MinDesiredSlotHeight"))
+				+ SUniformGridPanel::Slot(0, 0)
 				[
-					SNew(SBox)
-					.WidthOverride(48.0f)
-					[
-						SNew(STextBlock)
-						.Text(LOCTEXT("BatchRenameToolDlgSuffix", "Suffix"))
-					.Justification(ETextJustify::Right)
-					]
+					SNew(SButton)
+					.HAlign(HAlign_Center)
+					.ContentPadding(FEditorStyle::GetMargin("StandardDialog.ContentPadding"))
+					.OnClicked(this, &SDlgSlateSWindow::OnButtonClick, FDlgShowErrorList::Confirm)
+					.Text(LOCTEXT("SkeletonMergeOk", "OK"))
 				]
-				+ SHorizontalBox::Slot()
-				.FillWidth(1.0f)
-				.Padding(0.0f, 0.0f, 8.0f, 0.0f)
+				+ SUniformGridPanel::Slot(1, 0)
 				[
-					SAssignNew(SuffixTextBox, SEditableTextBox)
-				]
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				.Padding(0.0f, 0.0f, 0.0f, 0.0f)
-				[
-					SAssignNew(SuffixRemoveBox, SCheckBox)
-				]
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				.VAlign(VAlign_Center)
-				.Padding(0.0f, 0.0f, 8.0f, 0.0f)
-				[
-					SNew(STextBlock)
-					.Text(LOCTEXT("BatchRenameToolDlgRemove", "Remove"))
+					SNew(SButton)
+					.HAlign(HAlign_Center)
+					.ContentPadding(FEditorStyle::GetMargin("StandardDialog.ContentPadding"))
+					.OnClicked(this, &SDlgSlateSWindow::OnButtonClick, FDlgShowErrorList::Cancel)
+					.Text(LOCTEXT("SkeletonMergeCancel", "Cancel"))
 				]
 			]
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(8.0f, 4.0f, 8.0f, 4.0f)
-			[
-				SNew(SSeparator)
-			]
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(8.0f, 4.0f, 8.0f, 4.0f)
-			[
-				SNew(SHorizontalBox)
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				.Padding(0.0f, 0.0f, 8.0f, 0.0f)
-				[
-					SNew(SBox)
-					.WidthOverride(48.0f)
-				[
-					SNew(STextBlock)
-					.Text(LOCTEXT("BatchRenameToolDlgFind", "Find"))
-					.Justification(ETextJustify::Right)
-				]
-			]
-			+ SHorizontalBox::Slot()
-			.FillWidth(1.0f)
-			.Padding(0.0f, 0.0f, 8.0f, 0.0f)
-			[
-				SAssignNew(FindTextBox, SEditableTextBox)
-			]
-		]
-		+ SVerticalBox::Slot()
-		.AutoHeight()
-		.Padding(8.0f, 4.0f, 8.0f, 4.0f)
-		[
-			SNew(SHorizontalBox)
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.Padding(0.0f, 0.0f, 8.0f, 0.0f)
-			[
-				SNew(SBox)
-				.WidthOverride(48.0f)
-				[
-					SNew(STextBlock)
-					.Text(LOCTEXT("BatchRenameToolDlgReplace", "Replace"))
-					.Justification(ETextJustify::Right)
-				]
-			]
-			+ SHorizontalBox::Slot()
-			.FillWidth(1.0f)
-			.Padding(0.0f, 0.0f, 8.0f, 0.0f)
-			[
-				SAssignNew(ReplaceTextBox, SEditableTextBox)
-			]
-		]
-		+ SVerticalBox::Slot()
-		.AutoHeight()
-		.Padding(8.0f, 4.0f, 8.0f, 4.0f)
-		[
-			SNew(SSeparator)
-		]
-		+ SVerticalBox::Slot()
-		.AutoHeight()
-		.HAlign(HAlign_Right)
-		.Padding(8.0f, 4.0f, 8.0f, 4.0f)
-		[
-			SNew(SUniformGridPanel)
-			.SlotPadding(FEditorStyle::GetMargin("StandardDialog.SlotPadding"))
-			.MinDesiredSlotWidth(FEditorStyle::GetFloat("StandardDialog.MinDesiredSlotWidth"))
-			.MinDesiredSlotHeight(FEditorStyle::GetFloat("StandardDialog.MinDesiredSlotHeight"))
-			+ SUniformGridPanel::Slot(0, 0)
-			[
-				SNew(SButton)
-				.HAlign(HAlign_Center)
-				.ContentPadding(FEditorStyle::GetMargin("StandardDialog.ContentPadding"))
-				.OnClicked(this, &SDlgSlateSWindow::OnButtonClick, FDlgShowErrorList::Confirm)
-				.Text(LOCTEXT("SkeletonMergeOk", "OK"))
-			]
-			+ SUniformGridPanel::Slot(1, 0)
-			[
-				SNew(SButton)
-				.HAlign(HAlign_Center)
-				.ContentPadding(FEditorStyle::GetMargin("StandardDialog.ContentPadding"))
-				.OnClicked(this, &SDlgSlateSWindow::OnButtonClick, FDlgShowErrorList::Cancel)
-				.Text(LOCTEXT("SkeletonMergeCancel", "Cancel"))
-			]
-		]
-	];*/
+	];	
+	ShowErrorList();
 }
-
+void SDlgSlateSWindow::ShowErrorList()
+{
+	if (ErrorListDlg.IsValid())
+	{
+		for (TSharedPtr<FBlueprintErrorMessage> message : ErrorListDlg->ErrorMessages)
+		{
+			ErrorListBox->AddSlot()
+				.AutoHeight()
+				.Padding(1.f)
+				[
+					SNew(STextBlock)
+					.Text(FText::FromString(message->ErrorMessage))
+				];
+		}
+	}
+}
 FDlgShowErrorList::EResult SDlgSlateSWindow::GetUserResponse() const
 {
 	return UserResponse;

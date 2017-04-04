@@ -21,14 +21,16 @@
 */
 class FDlgShowErrorList
 {
+	 
 public:
+	
 	enum EResult
 	{
 		Cancel = 0,			// No/Cancel, normal usage would stop the current action
 		Confirm = 1,		// Yes/Ok/Etc, normal usage would continue with action
 	};
 	FDlgShowErrorList();
-//	FDlgShowErrorList(const TArray<TSharedPtr<class SDlgSlateSWindow>>& InErrorMessages);
+	FDlgShowErrorList(const TArray<TSharedPtr<struct FBlueprintErrorMessage>>& InErrorMessages);
 
 	/**  Shows the dialog box and waits for the user to respond. */
 	EResult ShowModal();
@@ -41,7 +43,7 @@ public:
 	FString Find;
 	FString Replace;
 
-	TArray<TSharedPtr<class FErrorList>>& ErrorMessages;
+	TArray<TSharedPtr<struct FBlueprintErrorMessage>> ErrorMessages;
 private:
 
 	/** Cached pointer to the modal window */
@@ -62,6 +64,7 @@ public:
 		{}
 		/** Window in which this widget resides */
 		SLATE_ATTRIBUTE(TSharedPtr<SWindow>, ParentWindow)
+		SLATE_ATTRIBUTE(TSharedPtr<FDlgShowErrorList>, ErrorListDlg)
 	SLATE_END_ARGS()
 
 	/**
@@ -76,6 +79,8 @@ public:
 	* in any other way than clicking "Ok" results in this returning a "Cancel" value
 	*/
 	FDlgShowErrorList::EResult GetUserResponse() const;
+
+	void ShowErrorList();
 
 private:
 
@@ -98,8 +103,11 @@ private:
 	/** Pointer to the window which holds this Widget, required for modal control */
 	TSharedPtr<SWindow>	ParentWindow;
 
-public:
+	TSharedPtr<FDlgShowErrorList> ErrorListDlg;
 
+public:
+	TSharedPtr<SVerticalBox> ErrorListBox;
+	TArray<TSharedPtr<STextBlock>> ErrorMessageBlocks;
 	TSharedPtr<SEditableTextBox> PrefixTextBox;
 	TSharedPtr<SEditableTextBox> SuffixTextBox;
 	TSharedPtr<SEditableTextBox> FindTextBox;

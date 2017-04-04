@@ -12,7 +12,7 @@
 
 #define LOCTEXT_NAMESPACE "LinterBatchRenamer"
 
-const FVector2D WindowSize = FVector2D(600, 800);
+const FVector2D WindowSize = FVector2D(600, 900);
 
 FDlgShowErrorList::FDlgShowErrorList()
 	: bRemovePrefix(false)

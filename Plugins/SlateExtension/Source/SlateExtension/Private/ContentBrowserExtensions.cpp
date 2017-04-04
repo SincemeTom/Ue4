@@ -99,7 +99,7 @@ static void PrintErrorListMessage(const TArray<TSharedPtr<FBlueprintErrorMessage
 	TSharedPtr<FDlgShowErrorList> AssetDlg = MakeShareable(new FDlgShowErrorList(ErrorList));
 	if (AssetDlg->ShowModal() == FDlgShowErrorList::Confirm)
 	{
-
+		UE_LOG(LogSlateExtension, Warning, TEXT("Open Window of Blueprint Check"))
 	}
 }
 static void CheckSelectedAssets(const TArray<FAssetData>& SelectedAssets)

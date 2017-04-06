@@ -1,5 +1,6 @@
 // Copyright 2016 Gamemakin LLC. All Rights Reserved.
 
+#include "SlateExtension.h"
 #include "ContentBrowserExtensions.h"
 #include "ContentBrowserModule.h"
 #include "AssetToolsModule.h"
@@ -8,7 +9,6 @@
 #include "EditorStyle.h"
 #include "EngineUtils.h"
 #include "Engine/Blueprint.h"
-#include "SlateExtension.h"
 #include "SlateSWindow.h"
 #include "SlateWindowHelper.h"
 #include "SlateExtensionEditorCommands.h"

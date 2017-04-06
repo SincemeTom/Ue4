@@ -3,6 +3,7 @@
 #pragma once
 
 #include "EditorStyleSet.h"
+#include "Editor.h"
 #include "SEditableTextBox.h"
 #include "SCheckBox.h"
 #include "SWindow.h"
@@ -96,6 +97,7 @@ private:
 
 		return FReply::Handled();
 	}
+	FReply OnBorderDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent, TSharedPtr<struct FBlueprintErrorMessage> ErrorMessage);
 
 	/** Stores the users response to this dialog */
 	FDlgShowErrorList::EResult UserResponse;

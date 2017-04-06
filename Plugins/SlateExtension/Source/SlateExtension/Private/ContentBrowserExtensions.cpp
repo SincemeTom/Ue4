@@ -33,9 +33,10 @@ FDelegateHandle SlateExtensionContentBrowserAssetsExtenderDelegateHandle;
 struct FBlueprintErrorMessage
 {
 public:
-	FBlueprintErrorMessage(EBlueprintStatus InErrorType, const FString& InErrorMessage)
-		:ErrorType(InErrorType),
-		ErrorMessage(InErrorMessage)
+	FBlueprintErrorMessage(EBlueprintStatus InErrorType, const FString& InErrorMessage , UObject* InObject)
+		:ErrorType(InErrorType)
+		,ErrorMessage(InErrorMessage)
+		,SelectedObject(InObject)
 	{
 	}
 	void operator=(FBlueprintErrorMessage Other)
@@ -47,6 +48,8 @@ public:
 	EBlueprintStatus ErrorType;
 
 	FString ErrorMessage;
+
+	UObject* SelectedObject;
 };
 
 static bool IsCompiledCorrectly(UBlueprint* Blueprint, TSharedPtr<FBlueprintErrorMessage>& OutError)
@@ -64,13 +67,13 @@ static bool IsCompiledCorrectly(UBlueprint* Blueprint, TSharedPtr<FBlueprintErro
 
 		ErrorString = FString::Printf(TEXT("%s is failing to compile due to errors. Path is %s"), *Blueprint->GetName(), *Blueprint->GetPathName());
 //		UE_LOG(LogSlateExtension, Error, TEXT("%s"), *ErrorString)	
-		OutError = MakeShareable(new FBlueprintErrorMessage(Blueprint->Status, ErrorString));
+		OutError = MakeShareable(new FBlueprintErrorMessage(Blueprint->Status, ErrorString, Blueprint));
 		return false;
 	case EBlueprintStatus::BS_UpToDateWithWarnings:
 
 		ErrorString = FString::Printf(TEXT("%s is compiling but has warnings. Path is %s"), *Blueprint->GetName(), *Blueprint->GetPathName());
 //		UE_LOG(LogSlateExtension, Error, TEXT("%s"), *ErrorString)
-		OutError = MakeShareable(new FBlueprintErrorMessage(Blueprint->Status, ErrorString));
+		OutError = MakeShareable(new FBlueprintErrorMessage(Blueprint->Status, ErrorString, Blueprint));
 		return false;
 	default:
 		return true;

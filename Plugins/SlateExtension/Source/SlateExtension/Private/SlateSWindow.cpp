@@ -3,6 +3,7 @@
 #include "SlateSWindow.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Framework/Text/TextLayout.h"
+#include "Framework/Docking/TabManager.h"
 #include "ContentBrowserExtensions.h"
 #include "SBox.h"
 #include "STextBlock.h"
@@ -22,8 +23,9 @@ FDlgShowErrorList::FDlgShowErrorList()
 	{
 		DialogWindow = SNew(SWindow)
 			.Title(LOCTEXT("BlueprintCheckerToolDlgTitle", "Blueprint Check Tool"))
-			.SupportsMinimize(true).SupportsMaximize(true)
-			.SaneWindowPlacement(true)
+			.SizingRule(ESizingRule::UserSized)
+			.SupportsMinimize(false).SupportsMaximize(false)
+			.SaneWindowPlacement(false)
 			.AutoCenter(EAutoCenter::PreferredWorkArea)
 			.ClientSize(WindowSize);
 
@@ -51,7 +53,7 @@ FDlgShowErrorList::FDlgShowErrorList(const TArray<TSharedPtr<FBlueprintErrorMess
 	{
 		DialogWindow = SNew(SWindow)
 			.Title(LOCTEXT("BlueprintCheckerToolDlgTitle", "Blueprint Check Tool"))
-			.SupportsMinimize(true).SupportsMaximize(true)
+			.SupportsMinimize(false).SupportsMaximize(false)
 			.SaneWindowPlacement(false)
 			.AutoCenter(EAutoCenter::PreferredWorkArea)
 			.ClientSize(WindowSize);
@@ -64,31 +66,24 @@ FDlgShowErrorList::FDlgShowErrorList(const TArray<TSharedPtr<FBlueprintErrorMess
 				SAssignNew(DialogWidget, SDlgSlateSWindow)
 				.ParentWindow(DialogWindow)
 				.ErrorListDlg(TempPtr)
-				//.ErrorMessages(ErrorMessages)
 			];
 
 		DialogWindow->SetContent(DialogWrapper.ToSharedRef());
-	//	DialogWidget->SetErrorListDlg(MakeShareable(this));
+
 	}
 }
 
 FDlgShowErrorList::EResult FDlgShowErrorList::ShowModal()
 {
-	//Show Dialog
-	GEditor->EditorAddModalWindow(DialogWindow.ToSharedRef());
 	EResult UserResponse = (EResult)DialogWidget->GetUserResponse();
 
+	TSharedPtr<SWindow> RootWindow = FGlobalTabmanager::Get()->GetRootWindow();
+	if (RootWindow.IsValid())
+	{
+		FSlateApplication::Get().AddWindowAsNativeChild(DialogWindow.ToSharedRef(), RootWindow.ToSharedRef());
+	}
 	if (UserResponse == EResult::Confirm)
 	{
-		//Prefix = DialogWidget->PrefixTextBox->GetText().ToString();
-		//Suffix = DialogWidget->SuffixTextBox->GetText().ToString();
-		//bRemovePrefix = DialogWidget->PrefixRemoveBox->IsChecked();
-		//bRemoveSuffix = DialogWidget->SuffixRemoveBox->IsChecked();
-
-		//Find = DialogWidget->FindTextBox->GetText().ToString();
-		//Replace = DialogWidget->ReplaceTextBox->GetText().ToString();
-
-		// If no information is given, treat as canceled
 		if (Prefix.IsEmpty() && Suffix.IsEmpty() && Find.IsEmpty())
 		{
 			return EResult::Cancel;
@@ -150,8 +145,16 @@ void SDlgSlateSWindow::ShowErrorList()
 				.AutoHeight()
 				.Padding(1.f)
 				[
-					SNew(STextBlock)
-					.Text(FText::FromString(message->ErrorMessage))
+					SNew(SBorder)
+					.BorderImage(FEditorStyle::GetBrush("ToolPanel.GroupBorder"))
+					.OnMouseButtonDown(this, &SDlgSlateSWindow::OnBorderDown, message)
+					.Padding(4.0f)
+					[
+						SNew(STextBlock)
+						.Text(FText::FromString(message->ErrorMessage))
+						.Font(FSlateFontInfo(TEXT("Robot"), 12))
+						.ColorAndOpacity(FSlateColor(message->ErrorType == EBlueprintStatus::BS_Error ? FLinearColor::Red : FLinearColor::Yellow))
+					]
 				];
 		}
 	}
@@ -161,4 +164,12 @@ FDlgShowErrorList::EResult SDlgSlateSWindow::GetUserResponse() const
 	return UserResponse;
 }
 
+FReply SDlgSlateSWindow::OnBorderDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent, TSharedPtr<struct FBlueprintErrorMessage> ErrorMessage)
+{
+	//UE_LOG(LogSlateExtension, TEXT("Press Button"))
+	TArray<UObject*> Objects;
+	Objects.Add(ErrorMessage.Get()->SelectedObject);
+	GEditor->SyncBrowserToObjects(Objects);
+	return FReply::Handled();
+}
 #undef LOCTEXT_NAMESPACE

@@ -1,6 +1,5 @@
 // Copyright 2016 Gamemakin LLC. All Rights Reserved.
 
-#include "SlateExtension.h"
 #include "SlateSWindow.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Framework/Text/TextLayout.h"
